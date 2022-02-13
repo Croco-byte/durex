@@ -6,7 +6,7 @@
 /*   By: user42 <user42@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/08 14:20:11 by user42            #+#    #+#             */
-/*   Updated: 2022/02/11 13:49:05 by user42           ###   ########.fr       */
+/*   Updated: 2022/02/13 11:51:47 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,9 +31,9 @@ int		main(void)
 		exit(1);
 	}
 
-	if (durex_type() == DUREX_BIN)
-		durex_bin();
-	else
+//	if (durex_type() == DUREX_BIN)
+//		durex_bin();
+//	else
 		durex_daemon();
 
 	return (0);
