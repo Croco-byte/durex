@@ -6,7 +6,7 @@
 /*   By: user42 <user42@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/08 14:19:30 by user42            #+#    #+#             */
-/*   Updated: 2022/02/13 15:10:00 by user42           ###   ########.fr       */
+/*   Updated: 2022/02/13 16:22:12 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <poll.h>
 #include <sys/mman.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -63,13 +64,11 @@ typedef struct				s_server
 	int						server_mode;
 
 	int						listen_sd;
-	int						max_sd;
 	int						last_id;
 	int						client_nb;
 
-	fd_set					master_set;
-	fd_set					read_set;
-	fd_set					write_set;
+	struct pollfd			*pfds;
+	int						nfds;
 
 	char					buff[RECV_SIZE];
 

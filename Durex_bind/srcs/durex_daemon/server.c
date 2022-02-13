@@ -6,7 +6,7 @@
 /*   By: user42 <user42@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/13 13:38:25 by user42            #+#    #+#             */
-/*   Updated: 2022/02/13 15:14:51 by user42           ###   ########.fr       */
+/*   Updated: 2022/02/13 16:23:32 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,10 +33,19 @@ void	setup_server(t_server *server)
 		fatal(server);
 	if (listen(server->listen_sd, 50) < 0)
 		fatal(server);
-	
-	FD_ZERO(&(server->master_set));
-	FD_SET(server->listen_sd, &(server->master_set));
-	server->max_sd = server->listen_sd;
+
+	server->pfds = calloc(4, sizeof(struct pollfd));
+	server->nfds = 4;
+	server->pfds[0].fd = server->listen_sd;
+	server->pfds[0].events = POLLIN;
+
+	int i = 1;
+	while (i < 4)
+	{
+		server->pfds[i].fd = -1;
+		server->pfds[i].events = POLLIN;
+		i++;
+	}
 }
 
 void	rm_client(t_server *server, t_client *client)
@@ -49,6 +58,11 @@ void	rm_client(t_server *server, t_client *client)
 		return ;
 	if (tmp->fd == client->fd)
 	{
+		for (int i = 1; i < 4; i++)
+		{
+			if (server->pfds[i].fd == client->fd)
+				server->pfds[i].fd = -1;
+		}
 		server->clients = tmp->next;
 		free(tmp);
 	}
@@ -56,6 +70,11 @@ void	rm_client(t_server *server, t_client *client)
 	{
 		while (tmp && tmp->next && tmp->next->fd != client->fd)
 			tmp = tmp->next;
+		for (int i = 1; i < 4; i++)
+		{
+			if (server->pfds[i].fd == client->fd)
+				server->pfds[i].fd = -1;
+		}
 		del = tmp->next;
 		tmp->next = tmp->next->next;
 		free(del);
@@ -65,11 +84,8 @@ void	rm_client(t_server *server, t_client *client)
 void	shutdown_connection(t_server *server, t_client *client)
 {
 	printf("[LOG] Client %i just left.\n", client->id);
-	FD_CLR(client->fd, &(server->master_set));
 	close(client->fd);
 	rm_client(server, client);
-	while (!FD_ISSET(server->max_sd, &(server->master_set)))
-		server->max_sd--;
 }
 
 int		add_client_to_list(t_server *server, int new_sd)
@@ -116,20 +132,16 @@ void	reject_client(t_server *server, int fd)
 
 void	add_client(t_server *server)
 {
-	struct sockaddr_in		sockaddr;
-	socklen_t				len = sizeof(sockaddr);
 	int						new_sd;
 
-	if ((new_sd = accept(server->listen_sd, (struct sockaddr *)&sockaddr, &len)) < 0)
+	if ((new_sd = accept(server->listen_sd, NULL, NULL)) < 0)
 		fatal(server);
 	if (server->client_nb >= 3)
 		return (reject_client(server, new_sd));
-	if (new_sd > server->max_sd)
-		server->max_sd = new_sd;
 	printf("[LOG] Client %i just arrived.\n", add_client_to_list(server, new_sd));
-	FD_SET(new_sd, &(server->master_set));
 	send_info(server, new_sd, "		==== DUREX v1.0 ====\nPassword: ");
 	server->client_nb++;
+	server->pfds[server->client_nb].fd = new_sd;
 }
 
 int		add_shell_client(t_server *server)
@@ -154,7 +166,6 @@ void	reset_server(t_server *server)
 	while (tmp)
 	{
 		del = tmp->next;
-		FD_CLR(tmp->fd, &(server->master_set));
 		close(tmp->fd);
 		free(tmp);
 		tmp = del;
@@ -164,7 +175,14 @@ void	reset_server(t_server *server)
 	server->clients = 0;
 	server->client_nb = 0;
 	server->shell_started = 0;
-	server->max_sd = server->listen_sd;
+
+	int i = 1;
+	while (i < 4)
+	{
+		server->pfds[i].fd = -1;
+		server->pfds[i].events = POLLIN;
+		i++;
+	}
 
 	printf("[LOG] Kicking everyone from server.\n");
 }
