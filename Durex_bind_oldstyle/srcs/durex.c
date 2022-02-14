@@ -6,24 +6,42 @@
 /*   By: user42 <user42@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/08 14:20:11 by user42            #+#    #+#             */
-/*   Updated: 2022/02/14 12:02:27 by user42           ###   ########.fr       */
+/*   Updated: 2022/02/14 15:46:55 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "durex.h"
 
-int		durex_type(void)
+void	daemonize(void)
 {
-	pid_t	ppid;
+	pid_t		pid;
 
-	ppid = getppid();
-	if (ppid == 1)
-		return (DUREX_DAEMON);
-	return (DUREX_BIN);
+	// FIRST FORK
+	pid = fork();
+	if (pid < 0)
+		exit(1);
+	if (pid > 0)
+		exit(0);
+
+	// SET SESSION
+	if (setsid() < 0)
+		exit(1);
+	
+	// SECOND FORK
+	pid = fork();
+	if (pid < 0)
+		exit(1);
+	if (pid > 0)
+		exit(0);
+	
+	umask(0);
+	chdir("/");
+
+	for (int x = sysconf(_SC_OPEN_MAX); x >= 0; x--)
+		close(x);
 }
 
-
-int		main(void)
+int		main(int argc, char **argv)
 {
 	if (geteuid() != 0)
 	{
@@ -31,10 +49,10 @@ int		main(void)
 		exit(1);
 	}
 
-	if (durex_type() == DUREX_BIN)
-		durex_bin();
-	else
+	if (argc > 1 && !strcmp(argv[1],"daemon"))
 		durex_daemon();
+	else
+		durex_bin();
 	return (0);
 }
 
