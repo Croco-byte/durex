@@ -6,7 +6,7 @@
 #    By: user42 <user42@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/02/08 14:18:25 by user42            #+#    #+#              #
-#    Updated: 2022/02/11 15:07:28 by user42           ###   ########.fr        #
+#    Updated: 2022/02/15 11:13:17 by user42           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,9 +19,15 @@ CFLAGS = -Wall -Werror -Wextra -I includes/
 
 HEADER = durex.h
 
-MAIN = durex durex_bin durex_daemon cmd
+MAIN = durex
+CMD = cmd
+DUREX_BIN = durex_bin
+DUREX_DAEMON = durex_daemon durex_revshell server utilities
 
-SRCS =	$(addsuffix .c, $(addprefix srcs/, $(MAIN)))
+SRCS =	$(addsuffix .c, $(addprefix srcs/, $(MAIN))) \
+		$(addsuffix .c, $(addprefix srcs/cmd/, $(CMD))) \
+		$(addsuffix .c, $(addprefix srcs/durex_bin/, $(DUREX_BIN))) \
+		$(addsuffix .c, $(addprefix srcs/durex_daemon/, $(DUREX_DAEMON)))
 
 
 OBJS = ${SRCS:.c=.o}
