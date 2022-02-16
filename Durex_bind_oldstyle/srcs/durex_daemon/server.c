@@ -6,7 +6,7 @@
 /*   By: user42 <user42@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/13 13:38:25 by user42            #+#    #+#             */
-/*   Updated: 2022/02/13 16:23:32 by user42           ###   ########.fr       */
+/*   Updated: 2022/02/16 12:27:59 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -154,7 +154,7 @@ int		add_shell_client(t_server *server)
 	}
 	server->client_nb++;
 	server->shell_started = 1;
-	printf("[SHELL MODE] Got a client with fd %d\n", new_sd);
+	printf("[SHELL MODE] Got a shell client with fd %d\n", new_sd);
 	return (add_client_to_list(server, new_sd));
 }
 

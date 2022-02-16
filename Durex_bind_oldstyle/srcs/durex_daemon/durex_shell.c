@@ -6,7 +6,7 @@
 /*   By: user42 <user42@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/13 13:39:33 by user42            #+#    #+#             */
-/*   Updated: 2022/02/13 16:21:41 by user42           ###   ########.fr       */
+/*   Updated: 2022/02/16 12:28:20 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,7 @@ void	durex_shell(t_server *server)
 					}
 					else
 					{
-						printf("[SHELL MODE] Client with id %d, fd %d, has pid %d\n", new_client->id, new_client->fd, pid);
+						printf("[SHELL MODE] Client with id %d, fd %d, opened shell  (pid %d)\n", new_client->id, new_client->fd, pid);
 						new_client->pid = pid;
 						break ;
 					}

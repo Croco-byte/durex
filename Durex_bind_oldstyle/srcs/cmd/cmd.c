@@ -6,7 +6,7 @@
 /*   By: user42 <user42@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/09 13:07:40 by user42            #+#    #+#             */
-/*   Updated: 2022/02/11 15:34:40 by user42           ###   ########.fr       */
+/*   Updated: 2022/02/15 14:37:43 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ void	clear_env(void)
 	if (confstr(_CS_PATH, pathbuf, n) == 0)
 		exit(1);
 	
-	if (setenv("PATH", pathbuf, 1) == -1)
+	if (setenv("PATH", "/bin:/usr/bin:/usr/sbin", 1) == -1)
 		exit(1);
 	free(pathbuf);
 }

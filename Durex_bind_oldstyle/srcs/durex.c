@@ -6,7 +6,7 @@
 /*   By: user42 <user42@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/08 14:20:11 by user42            #+#    #+#             */
-/*   Updated: 2022/02/14 15:46:55 by user42           ###   ########.fr       */
+/*   Updated: 2022/02/15 14:24:57 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ void	daemonize(void)
 	pid = fork();
 	if (pid < 0)
 		exit(1);
-	if (pid > 0)
+	if (pid > 0)		// (exit parent)
 		exit(0);
 
 	// SET SESSION
@@ -31,12 +31,17 @@ void	daemonize(void)
 	pid = fork();
 	if (pid < 0)
 		exit(1);
-	if (pid > 0)
+	if (pid > 0)		// (exit parent)
 		exit(0);
 	
+
+	// RESET UMASK
 	umask(0);
+
+	// CHANGE DIRECTORY
 	chdir("/");
 
+	// CLOSE ALL FILE DESCRIPTORS
 	for (int x = sysconf(_SC_OPEN_MAX); x >= 0; x--)
 		close(x);
 }

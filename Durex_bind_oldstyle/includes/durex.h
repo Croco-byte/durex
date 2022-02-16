@@ -6,7 +6,7 @@
 /*   By: user42 <user42@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/08 14:19:30 by user42            #+#    #+#             */
-/*   Updated: 2022/02/14 12:53:38 by user42           ###   ########.fr       */
+/*   Updated: 2022/02/16 10:59:16 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -105,6 +105,7 @@ void				fatal(t_server *server);
 t_client			*get_client_from_id(t_server *server, int id);
 t_client			*get_client_from_fd(t_server *server, int fd);
 void				send_info(t_server *server, int fd, char *info);
+void				send_info_all(t_server *server, char *info);
 
 
 
