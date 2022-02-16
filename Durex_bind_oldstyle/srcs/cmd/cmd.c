@@ -58,12 +58,12 @@ int		exec_safe(char *const cmd, char **const args)
 		ret = waitpid(pid, &status, 0);
 		if (ret == 0 || (!WIFEXITED(status) && !WEXITSTATUS(status)))
 		{
-			printf("[X] Unexpected child exit, something went wrong in exec_safe.\n");
+//			printf("[X] Unexpected child exit, something went wrong in exec_safe.\n");
 			return(1);
 		}
 		if (WEXITSTATUS(status) != 0)
 		{
-			printf("[X] Child status exited with an exit code different from 0 in exec_safe.\n");
+//			printf("[X] Child status exited with an exit code different from 0 in exec_safe.\n");
 			return(1);
 		}
 	}
@@ -102,12 +102,12 @@ int		exec_safe_w_output(char *cmd, char **const args, char *cmd_outbuf)
 		ret = waitpid(pid, &status, 0);
 		if (ret == 0 || (!WIFEXITED(status) && !WEXITSTATUS(status)))
 		{
-			printf("[X] Unexpected child exit, something went wrong in exec_safe_w_output.\n");
+//			printf("[X] Unexpected child exit, something went wrong in exec_safe_w_output.\n");
 			return(1);
 		}
 		if (WEXITSTATUS(status) != 0)
 		{
-			printf("[X] Child status exited with an exit code different from 0 in exec_safe_w_output.\n");
+//			printf("[X] Child status exited with an exit code different from 0 in exec_safe_w_output.\n");
 			return(1);
 		}
 		
@@ -115,7 +115,7 @@ int		exec_safe_w_output(char *cmd, char **const args, char *cmd_outbuf)
 		int nbytes = read(link[0], cmd_outbuf, CMD_OUT_MAX);
 		if (nbytes <= 0)
 		{
-			printf("[X] No output from command in exec_safe_w_output.\n");
+//			printf("[X] No output from command in exec_safe_w_output.\n");
 			return(1);
 		}
 		cmd_outbuf[nbytes - 1] = '\0';
